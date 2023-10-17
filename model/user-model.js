@@ -15,6 +15,10 @@ const userSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
+		username: {
+			type: String,
+			required: true,
+		},
 		income: [
 			{
 				type: mongoose.Schema.Types.ObjectId,
@@ -25,6 +29,12 @@ const userSchema = new mongoose.Schema(
 			{
 				type: mongoose.Schema.Types.ObjectId,
 				ref: "Expense",
+			},
+		],
+		saving: [
+			{
+				type: mongoose.Schema.Types.ObjectId,
+				ref: "Saving",
 			},
 		],
 	},

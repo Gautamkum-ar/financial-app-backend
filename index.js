@@ -2,6 +2,9 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import "./database/inital-db.js";
+import userRouter from "./routes/user-route.js";
+import IncomeRouter from "./routes/income-route.js";
+import ExpenseRouter from "./routes/expense-route.js";
 
 const app = express();
 dotenv.config();
@@ -14,8 +17,9 @@ app.use(
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// app.use("/v1/api", ItemRouter);
-// app.use("/v1/api", SaleRouter);
+// app.use("/v1/api", userRouter);
+app.use("/v1/api", IncomeRouter);
+app.use("/v1/api", ExpenseRouter);
 
 app.use("*", (req, res) => {
 	res.status(404).json({

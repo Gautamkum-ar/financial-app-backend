@@ -13,7 +13,7 @@ export const singup = asyncHandler(async (req, res, next) => {
 		if (!name || !email || !password || !username) {
 			return next(new ErrorResponse(ErrorMessage.MISSING_FIELD, 400));
 		}
-		const newUser = await User.create({
+		const newUser = await userModel.create({
 			name: name,
 			username: username,
 			email: email,
@@ -38,17 +38,55 @@ export const signin = asyncHandler(async (req, res, next) => {
 			return next(new ErrorResponse(ErrorMessage.MISSING_FIELD, 400));
 		}
 		//check for existing user
-		const user = await userModel.findOne({ email }).select("-password");
+		const user = await userModel.findOne({ email }).select("-password -__v");
 		if (!user) {
 			return next(new ErrorResponse(`Invalid Credentials`, 401));
 		}
+		const encodedToken = generateToken({ user });
 		return res.status(200).json({
-			message: "User login successfully",
+			message: SuccessMessage.LOGIN,
 			success: true,
-			data: {
-				user,
-				encodedToken: generateToken(user),
-			},
+			data: { user: user, encodedToken: encodedToken },
+		});
+	} catch (error) {
+		return next(new ErrorResponse(error.message, 500));
+	}
+});
+
+//@desc Get user profile
+//Route GET /v1/api/auth/user/profile
+
+export const getProfile = asyncHandler(async (req, res, next) => {
+	const { user } = req.user;
+	try {
+		const findUser = await userModel
+			.findById({ _id: user._id })
+			.select("-password -__v");
+		if (findUser.income.length > 0) {
+			await findUser.populate({
+				path: "income",
+				select: "-__v -updatedAt -userId",
+			});
+		}
+		if (findUser.saving.length > 0) {
+			await findUser.populate({
+				path: "saving",
+				select: "-__v -updatedAt -userId",
+			});
+		}
+		if (findUser.expense.length > 0) {
+			await findUser.populate({
+				path: "expense",
+				select: "-__v -updatedAt -userId",
+			});
+		}
+		if (!findUser) {
+			return next(new ErrorMessage(ErrorMessage.USER_NOT_FOUND, 401));
+		}
+		return res.status(200).json({
+			message: SuccessMessage.LOGIN,
+			success: true,
+			data: findUser,
 		});
 	} catch (error) {
 		return next(new ErrorResponse(error.message, 500));
